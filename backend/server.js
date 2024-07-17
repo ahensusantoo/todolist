@@ -1,23 +1,25 @@
 // server.js
 import express from 'express'
 import dotenv from 'dotenv';
-import { connectDb } from './app/database.js';  // Perhatikan perubahan di sini
+import { connectDb } from './app/database.js';
 import { notFound, errorHandler, trimMiddleware } from './middleware/errorMiddleware.js';
-import userRoutes from './routes/userRoutes.js';
+import xssClean from './middleware/xssMiddleware.js';
+import userRoutes from './modules/master/routes/userRoutes.js';
 
 dotenv.config();
 
-connectDb();  // Panggil fungsi connectDb untuk menginisialisasi koneksi database
+connectDb();
 
 const app = express();
 const port = process.env.PORT || 8000;
 
+app.use(xssClean);
 app.use(trimMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send(`selamat datang di aplikasi ${process.env.APP_NAME}`);
 });
 
 app.use('/api/users', userRoutes);
