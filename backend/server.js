@@ -5,6 +5,7 @@ import { connectDb } from './app/database.js';
 import { notFound, errorHandler, trimMiddleware } from './middleware/errorMiddleware.js';
 import xssClean from './middleware/xssMiddleware.js';
 import userRoutes from './modules/master/routes/userRoutes.js';
+import authRoutes from './modules/auth/routes/authRoutes.js';
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/users', userRoutes);
+app.use('/api/login', authRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
