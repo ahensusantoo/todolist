@@ -1,11 +1,11 @@
 import asyncHandler from 'express-async-handler';
-import * as UserModel from '../models/userModel.js';
+import * as divisiModel from '../models/divisiModel.js';
 import { body, validationResult } from 'express-validator';
 import { responseCode } from '../../../helper/applicationHelper.js';
 
 // Validasi sederhana
-const validateUser = (isUpdate = false) => {
-    const validationsUser = [
+const validateDivisi = (isUpdate = false) => {
+    const validateDivisi = [
         body('username')
             .notEmpty().withMessage('Username tidak boleh kosong')
             .custom((value) => {
@@ -14,47 +14,30 @@ const validateUser = (isUpdate = false) => {
                 }
                 return true;
             }),
+        body('password')
+            .notEmpty().withMessage('Password tidak boleh kosong')
+            .custom((value) => {
+                if (/^\d+$/.test(value)) {
+                    throw new Error('Password tidak boleh hanya angka');
+                }
+                return true;
+            })
     ];
 
-    if (!isUpdate) {
-        validationsUser.push(
-            body('password')
-                .notEmpty().withMessage('Password tidak boleh kosong')
-                .custom((value) => {
-                    if (/^\d+$/.test(value)) {
-                        throw new Error('Password tidak boleh hanya angka');
-                    }
-                    return true;
-                })
-        );
-    } else {
-        validationsUser.push(
-            body('password')
-                .optional()
-                .custom((value) => {
-                    if (value && /^\d+$/.test(value)) {
-                        throw new Error('Password tidak boleh hanya angka');
-                    }
-                    return true;
-                })
-        );
-    }
-
-    return validationsUser;
+    return validateDivisi;
 };
 
 
 // @desc Get All Users
 // @route GET /api/users
 // @access Public
-const getUsers = asyncHandler(async (req, res, next) => {
-    const post = req.body; // Ambil post dari body request
-    const users = await UserModel.getAllUsers({ post }); // Kirim post ke model
-    if (users && users.length > 0) {
+const getDivisi = asyncHandler(async (req, res, next) => {
+    const users = await divisiModel.getAllDivisi();
+    if (users) {
         res.status(200).json({
             statusCode: 200,
             message: {
-                label_message: 'All users',
+                label_message: 'all users',
                 validasi_data: null
             },
             data: users,
@@ -68,13 +51,12 @@ const getUsers = asyncHandler(async (req, res, next) => {
     }
 });
 
-
 // @desc Get Detail User by ID
 // @route GET /api/users/:id
 // @access Public
-const detailUser = asyncHandler(async (req, res) => {
+const detailDivisi = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const users = await UserModel.getUserById(id);
+    const users = await divisiModel.getUserById(id);
     if (users) {
         res.status(200).json({
             statusCode: 200,
@@ -108,7 +90,7 @@ const createUser = asyncHandler(async (req, res) => {
 
     const post = req.body;
     // Check if username already exists
-    const existingUser = await UserModel.checkUsername(post);
+    const existingUser = await divisiModel.checkUsername(post);
     if (existingUser) {
         throw responseCode(
             400,
@@ -116,7 +98,7 @@ const createUser = asyncHandler(async (req, res) => {
         );
     }
 
-    const createdUser = await UserModel.createUser({ post });
+    const createdUser = await divisiModel.createUser({ post });
     if (createdUser) {
         res.status(201).json({
             statusCode : 201,
@@ -151,7 +133,7 @@ const updateUser = asyncHandler(async (req, res) => {
     const post = req.body;
 
     // Check if username already exists for another user
-    const existingUser = await UserModel.checkUsername(post);
+    const existingUser = await divisiModel.checkUsername(post);
     if (existingUser && existingUser.mu_userid != id) {
         throw responseCode(
             400,
@@ -161,7 +143,7 @@ const updateUser = asyncHandler(async (req, res) => {
     }
 
     // Update user data
-    const updatedUser = await UserModel.updateUser(post, id);
+    const updatedUser = await divisiModel.updateUser(post, id);
     if (updatedUser) {
         res.status(200).json({
             statusCode: 200,
@@ -185,9 +167,9 @@ const updateUser = asyncHandler(async (req, res) => {
 // @access Public
 const deleteUser = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const users = await UserModel.getUserById(id);
+    const users = await divisiModel.getUserById(id);
     if(users){
-        const deleteUser = await UserModel.deleteUser(id);
+        const deleteUser = await divisiModel.deleteUser(id);
         if(deleteUser){
             res.status(200).json({
                 statusCode : 200,

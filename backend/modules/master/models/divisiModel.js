@@ -1,43 +1,11 @@
-// models/UserModel.js
 import { pool } from '../../../app/database.js';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 
-
-// @ { search, limit, page } bersifat opsinal (tidak wajib di isi)
-const getAllUsers = async ({ post }) => {
+const getAllDivisi = async () => {
     const client = await pool.connect();
     try {
-        let { search, limit, page } = post;
-
-        // Validasi dan set default limit
-        if (!limit || limit <= 0 || isNaN(limit)) {
-            limit = 10; // Nilai default
-        } else if (limit > 200) {
-            throw responseCode(
-                400,
-                'Maksimal limit yang dapat ditampilkan adalah 200 data',
-            );
-        }
-
-        let offset = 0;
-        page = parseInt(page);
-        if (page && page > 1) {
-            offset = (page - 1) * limit;
-        }
-
-        const values = [];
-        let query = 'SELECT * FROM mst_users';
-        if (search) {
-            query += ` WHERE mu_username LIKE $1 OR mu_email LIKE $1`;
-            values.push(`%${search}%`);
-        }
-
-        query += ` LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
-        values.push(limit);
-        values.push(offset);
-
-        const { rows } = await client.query(query, values.length > 0 ? values : undefined);
+        const { rows } = await client.query('SELECT * FROM mst_divisi');
         return rows;
     } finally {
         client.release();
@@ -132,4 +100,4 @@ const checkUsername = async (post = null, id= null) => {
 };
 
 
-export { getAllUsers, getUserById, createUser, updateUser, deleteUser, checkUsername };
+export { getAllDivisi, getUserById, createUser, updateUser, deleteUser, checkUsername };

@@ -1,4 +1,4 @@
-const throw_error = (statusCode, label_message, validasi_data = null, data = null) => {
+const responseCode = (statusCode, label_message, validasi_data = null, data = null) => {
     const error = new Error(label_message);
     error.statusCode = statusCode;
     error.label_message = label_message;
@@ -8,5 +8,5 @@ const throw_error = (statusCode, label_message, validasi_data = null, data = nul
 };
 
 export {
-    throw_error
+    responseCode
 }

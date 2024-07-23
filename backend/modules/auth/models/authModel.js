@@ -1,9 +1,8 @@
 import { pool } from '../../../app/database.js';
 
-const login = async ({ post }) => {
-    const client = await pool.connect();
+const login = async ({ username }) => {
+    const client = await pool.connect(); // Menggunakan await untuk mendapatkan client dari pool
     try {
-        const { username } = post;
         const queryText = `SELECT * FROM mst_users WHERE mu_username = $1 OR mu_email = $1`;
         const values = [username];
         
@@ -14,7 +13,7 @@ const login = async ({ post }) => {
         console.error('Error dalam login:', error.message);
         throw error; // Melempar kembali error untuk ditangani di lapisan yang lebih tinggi
     } finally {
-        client.release(); // Selalu melepas koneksi client setelah selesai menggunakan pool
+        client.release(); // Melepaskan koneksi client ke pool setelah selesai
     }
 };
 
