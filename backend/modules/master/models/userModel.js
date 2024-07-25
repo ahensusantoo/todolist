@@ -39,6 +39,9 @@ const getAllUsers = async ({ post }) => {
 
         const { rows } = await client.query(query, values.length > 0 ? values : undefined);
         return rows;
+    } catch (error) {
+        console.error('Error : ', error);
+        throw error;
     } finally {
         client.release();
     }
@@ -49,6 +52,9 @@ const getUserById = async (id) => {
     try {
         const { rows } = await client.query('SELECT * FROM mst_users WHERE mu_userid = $1', [id]);
         return rows[0];
+    }catch (error) {
+        console.error('Error : ', error);
+        throw error;
     } finally {
         client.release();
     }
@@ -69,6 +75,9 @@ const createUser = async ({ post }) => {
         const values = [id, username, hashedPassword, email, user_insert, user_insert];
         const { rows } = await client.query(queryText, values);
         return rows[0];
+    } catch (error) {
+        console.error('Error : ', error);
+        throw error;
     } finally {
         client.release();
     }
@@ -102,7 +111,7 @@ const updateUser = async (post, id) => {
         const { rows } = await client.query(queryText, values);
         return rows[0];
     } catch (error) {
-        console.error('Error updating user:', error);
+        console.error('Error : ', error);
         throw error;
     } finally {
         client.release();
@@ -114,6 +123,9 @@ const deleteUser = async (id) => {
     try {
         const { rows } = await client.query('DELETE FROM users WHERE id = $1 RETURNING *', [id]);
         return rows[0];
+    } catch (error) {
+        console.error('Error : ', error);
+        throw error;
     } finally {
         client.release();
     }
@@ -126,6 +138,9 @@ const checkUsername = async (post = null, id= null) => {
         const queryText = 'SELECT * FROM mst_users WHERE LOWER(mu_username) = LOWER($1)';
         const { rows } = await client.query(queryText, [username]);
         return rows[0]; // Mengembalikan baris pertama dari hasil query
+    } catch (error) {
+        console.error('Error : ', error);
+        throw error;
     } finally {
         client.release();
     }

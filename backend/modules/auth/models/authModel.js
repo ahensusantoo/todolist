@@ -7,13 +7,12 @@ const login = async ({ username }) => {
         const values = [username];
         
         const { rows } = await client.query(queryText, values);
-        return rows[0]; // Mengembalikan user pertama yang ditemukan
+        return rows[0];
     } catch (error) {
-        // Menghandle kesalahan yang terjadi selama eksekusi query atau di dalam blok try
         console.error('Error dalam login:', error.message);
-        throw error; // Melempar kembali error untuk ditangani di lapisan yang lebih tinggi
+        throw error;
     } finally {
-        client.release(); // Melepaskan koneksi client ke pool setelah selesai
+        client.release();
     }
 };
 
