@@ -48,8 +48,8 @@ const validateUser = (isUpdate = false) => {
 // @route GET /api/users
 // @access Public
 const getUsers = asyncHandler(async (req, res, next) => {
-    const post = req.body; // Ambil post dari body request
-    const users = await UserModel.getAllUsers({ post }); // Kirim post ke model
+    const post = req.body;
+    const users = await UserModel.getAllUsers({ post }); 
     if (users && users.length > 0) {
         res.status(200).json({
             statusCode: 200,
