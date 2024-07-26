@@ -1,4 +1,4 @@
-import { pool } from '../../../app/database.js';
+import { pool } from '../../../../app/database.js';
 
 const login = async ({ username }) => {
     const client = await pool.connect(); // Menggunakan await untuk mendapatkan client dari pool

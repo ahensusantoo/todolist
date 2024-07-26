@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import { body, validationResult } from 'express-validator';
-import { responseCode } from '../../../helper/applicationHelper.js';
+import { responseCode } from '../../../../helper/applicationHelper.js';
 import * as authModel from '../models/authModel.js';
 import bcrypt from 'bcrypt';
 

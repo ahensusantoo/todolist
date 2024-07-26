@@ -6,7 +6,7 @@ const notFound = (req, res, next) => {
 
 const errorHandler = (err, req, res, next) => {
     let statusCode = err.statusCode || res.statusCode || 500;
-    let label_message = err.label_message || 'Internal Server Error'; // Pesan default
+    let label_message = err.label_message || err.message;
     let validasi_data = err.validasi_data || null;
     let data = err.data || null;
 

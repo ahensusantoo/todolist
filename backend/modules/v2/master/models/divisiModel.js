@@ -1,12 +1,11 @@
-// models/UserModel.js
-import { pool } from '../app/database.js';
+import { pool } from '../../../../app/database.js';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 
-const getAllUsers = async () => {
+const getAllDivisi = async () => {
     const client = await pool.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM mst_users');
+        const { rows } = await client.query('SELECT * FROM mst_divisi');
         return rows;
     } finally {
         client.release();
@@ -101,4 +100,4 @@ const checkUsername = async (post = null, id= null) => {
 };
 
 
-export { getAllUsers, getUserById, createUser, updateUser, deleteUser, checkUsername };
+export { getAllDivisi, getUserById, createUser, updateUser, deleteUser, checkUsername };

@@ -1,7 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import * as UserModel from '../models/userModel.js';
 import { body, validationResult } from 'express-validator';
-import { responseCode } from '../../../helper/applicationHelper.js';
+import { responseCode } from '../../../../helper/applicationHelper.js';
 
 // Validasi sederhana
 const validateUser = (isUpdate = false) => {

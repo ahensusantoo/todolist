@@ -1,44 +1,42 @@
 // models/UserModel.js
-import { pool } from '../../../app/database.js';
+import { pool } from '../../../../app/database.js';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 
+import { buildWhereClause } from '../../../../helper/applicationHelper.js';
+
 
 // @ { search, limit, page } bersifat opsinal (tidak wajib di isi)
-const getAllUsers = async ({ post }) => {
+const getAllUsers = async ({ where, limit, offset, search, single = false }) => {
     const client = await pool.connect();
     try {
-        let { search, limit, page } = post;
-
-        // Validasi dan set default limit
-        if (!limit || limit <= 0 || isNaN(limit)) {
-            limit = 10; // Nilai default
-        } else if (limit > 200) {
-            throw responseCode(
-                400,
-                'Maksimal limit yang dapat ditampilkan adalah 200 data',
-            );
-        }
-
-        let offset = 0;
-        page = parseInt(page);
-        if (page && page > 1) {
-            offset = (page - 1) * limit;
-        }
-
         const values = [];
         let query = 'SELECT * FROM mst_users';
+
+        // Build WHERE clause and values
+        const { conditions: whereConditions, values: whereValues } = buildWhereClause(where);
+
+        // Add WHERE clause to the query
+        if (whereConditions) {
+            query += ` WHERE ${whereConditions}`;
+            values.push(...whereValues);
+        }
+
+        // Handle search parameter
         if (search) {
-            query += ` WHERE mu_username LIKE $1 OR mu_email LIKE $1`;
+            const searchCondition = `mu_username LIKE $${values.length + 1} OR mu_email LIKE $${values.length + 1}`;
+            query += whereConditions ? ` AND (${searchCondition})` : ` WHERE ${searchCondition}`;
             values.push(`%${search}%`);
         }
 
+        // Append limit and offset
         query += ` LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
         values.push(limit);
         values.push(offset);
-
-        const { rows } = await client.query(query, values.length > 0 ? values : undefined);
-        return rows;
+        // Execute query
+        const { rows } = await client.query(query, values.length > 0 ? values : []);
+        const record = single ? rows[0] : rows;
+        return record;
     } catch (error) {
         console.error('Error : ', error);
         throw error;
@@ -46,6 +44,12 @@ const getAllUsers = async ({ post }) => {
         client.release();
     }
 };
+
+
+
+
+
+
 
 const getUserById = async (id) => {
     const client = await pool.connect();

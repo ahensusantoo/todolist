@@ -1,6 +1,6 @@
 import express from "express";
 import { getUsers, detailUser, createUser, updateUser, deleteUser, validateUser  } from "../controllers/userControllers.js";
-import {authenticateToken} from '../../../middleware/authMiddleware.js';
+import {authenticateToken} from '../../../../middleware/authMiddleware.js';
 
 
 const router = express();
