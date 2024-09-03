@@ -1,5 +1,5 @@
 import express from "express";
-import { login, ValidasiLogin } from "../controllers/authControllers.js";
+import { login, ValidasiLogin } from "../controllers/loginControllers.js";
 import { authenticateToken } from '../../../../middleware/authMiddleware.js';
 
 

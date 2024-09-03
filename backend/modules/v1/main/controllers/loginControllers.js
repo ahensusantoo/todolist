@@ -1,7 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import { body, validationResult } from 'express-validator';
 import { responseCode } from '../../../../helper/applicationHelper.js';
-import * as authModel from '../models/authModel.js';
+import * as loginModel from '../models/loginModel.js';
 import bcrypt from 'bcrypt';
 
 const ValidasiLogin = () => {
@@ -26,7 +26,7 @@ const login = asyncHandler(async (req, res, next) => {
     }
 
     const { username, password } = req.body; // Pastikan req.body memiliki username
-    const dataLogin = await authModel.login({ username });
+    const dataLogin = await loginModel.login({ username });
     if (!dataLogin) {
         throw responseCode(
             401,
