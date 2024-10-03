@@ -65,8 +65,8 @@ const getUsers = asyncHandler(async (req, res, next) => {
 
     // Hardcoded where condition
     let where = {
-        'mu_is_active': 1,
-        'mu_is_delete': 'IS NULL'
+        'mu_is_aktif': 1,
+        'mu_delete': 'IS NULL'
     };
 
     // Ensure that where is an object before passing it to UserModel.getAllUsers
@@ -77,7 +77,7 @@ const getUsers = asyncHandler(async (req, res, next) => {
         res.status(200).json({
             statusCode: 200,
             message: {
-                label_message: 'All users',
+                label_message: 'Get users',
                 validasi_data: null
             },
             data: users,

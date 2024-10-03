@@ -11,7 +11,7 @@ const getAllUsers = async ({ where, limit, offset, search, single = false }) => 
     const client = await pool.connect();
     try {
         const values = [];
-        let query = 'SELECT * FROM mst_users';
+        let query = 'SELECT * FROM mst_user';
 
         // Build WHERE clause and values
         const { conditions: whereConditions, values: whereValues } = buildWhereClause(where);
@@ -54,7 +54,7 @@ const getAllUsers = async ({ where, limit, offset, search, single = false }) => 
 const getUserById = async (id) => {
     const client = await pool.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM mst_users WHERE mu_userid = $1', [id]);
+        const { rows } = await client.query('SELECT * FROM mst_user WHERE mu_userid = $1', [id]);
         return rows[0];
     }catch (error) {
         console.error('Error : ', error);
@@ -73,7 +73,7 @@ const createUser = async ({ post }) => {
 
         const id = uuidv4();
         const queryText = `
-            INSERT INTO mst_users(mu_userid, mu_username, mu_password, mu_email, mu_user_insert, mu_tgl_insert, mu_user_update, mu_tgl_update) 
+            INSERT INTO mst_user(mu_userid, mu_username, mu_password, mu_email, mu_user_insert, mu_tgl_insert, mu_user_update, mu_tgl_update) 
             VALUES($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, CURRENT_TIMESTAMP) 
             RETURNING *`;
         const values = [id, username, hashedPassword, email, user_insert, user_insert];
@@ -93,7 +93,7 @@ const updateUser = async (post, id) => {
     try {
         const { username, password, email, user_update } = post;
         let values = [username];
-        let queryText = 'UPDATE mst_users SET mu_username = $1';
+        let queryText = 'UPDATE mst_user SET mu_username = $1';
         
         // Jika password ada, tambahkan ke query dan values
         if (password && password.trim() !== '') {
@@ -139,7 +139,7 @@ const checkUsername = async (post = null, id= null) => {
     const client = await pool.connect();
     try {
         const { username } = post;
-        const queryText = 'SELECT * FROM mst_users WHERE LOWER(mu_username) = LOWER($1)';
+        const queryText = 'SELECT * FROM mst_user WHERE LOWER(mu_username) = LOWER($1)';
         const { rows } = await client.query(queryText, [username]);
         return rows[0]; // Mengembalikan baris pertama dari hasil query
     } catch (error) {
