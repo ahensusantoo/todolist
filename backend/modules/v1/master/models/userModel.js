@@ -45,12 +45,6 @@ const getAllUsers = async ({ where, limit, offset, search, single = false }) => 
     }
 };
 
-
-
-
-
-
-
 const getUserById = async (id) => {
     const client = await pool.connect();
     try {
