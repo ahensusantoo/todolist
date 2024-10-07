@@ -1,7 +1,5 @@
 // models/UserModel.js
 import { pool } from '../../../../app/database.js';
-import { v4 as uuidv4 } from 'uuid';
-import bcrypt from 'bcrypt';
 
 import { buildWhereClause } from '../../../../helper/applicationHelper.js';
 

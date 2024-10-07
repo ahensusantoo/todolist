@@ -45,7 +45,7 @@ const validate_mst_group = (isUpdate = false) => {
 
 
 // @desc Get All group
-// @route GET /api/mst_group
+// @route GET /api/version/mst_group
 // @access Public
 const get_mst_group_all = asyncHandler(async (req, res, next) => {
     let { search, limit, page } = req.body;
