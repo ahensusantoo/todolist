@@ -44,7 +44,7 @@ const validate_mst_group = (isUpdate = false) => {
 };
 
 
-// @desc Get All group
+// @desc Get All mst_group
 // @route GET /api/version/mst_group
 // @access Public
 const get_mst_group_all = asyncHandler(async (req, res, next) => {
@@ -70,6 +70,34 @@ const get_mst_group_all = asyncHandler(async (req, res, next) => {
     };
 
     const mst_group = await mst_group_model.get_mst_group_all({ where, limit, offset, search, single: false });
+    
+    if (mst_group) {
+        res.status(200).json({
+            statusCode: 200,
+            message: {
+                label_message: 'Get Master Group',
+                validasi_data: null
+            },
+            data: mst_group,
+            stack: null
+        });
+    } else {
+        throw responseCode(500, 'silahkan coba kembali');
+    }
+});
+
+// @desc Count All mst_group
+// @route GET /api/version/mst_group
+// @access Public
+const count_mst_group = asyncHandler(async (req, res, next) => {
+    let { search} = req.body;
+    // Hardcoded where condition
+    let where = {
+        'mg_is_aktif': 1,
+        // 'mu_delete': 'IS NULL'
+    };
+
+    const mst_group = await mst_group_model.count_mst_group({where, search});
     
     if (mst_group) {
         res.status(200).json({
@@ -232,6 +260,7 @@ const get_mst_group_all = asyncHandler(async (req, res, next) => {
 
 export {
     get_mst_group_all,
+    count_mst_group,
     // detailUser,
     // createUser,
     // updateUser,

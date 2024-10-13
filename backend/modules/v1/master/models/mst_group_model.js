@@ -43,6 +43,40 @@ const get_mst_group_all = async ({ where, limit, offset, search, single = false 
     }
 };
 
+// Fungsi untuk menghitung jumlah grup
+const count_mst_group = async ({ where, search }) => {
+    const client = await pool.connect();
+    try {
+        const values = [];
+        let query = 'SELECT COUNT(*) AS count FROM mst_group';
+
+        // Build WHERE clause and values
+        const { conditions: whereConditions, values: whereValues } = buildWhereClause(where);
+
+        // Add WHERE clause to the query
+        if (whereConditions) {
+            query += ` WHERE ${whereConditions}`;
+            values.push(...whereValues);
+        }
+
+        // Handle search parameter
+        if (search) {
+            const searchCondition = `mg_nama_group LIKE $${values.length + 1}`;
+            query += whereConditions ? ` AND (${searchCondition})` : ` WHERE ${searchCondition}`;
+            values.push(`%${search}%`);
+        }
+
+        // Execute query
+        const { rows } = await client.query(query, values);
+        return rows[0].count;
+    } catch (error) {
+        console.error('Error : ', error);
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 // const getUserById = async (id) => {
 //     const client = await pool.connect();
 //     try {
@@ -144,7 +178,8 @@ const get_mst_group_all = async ({ where, limit, offset, search, single = false 
 
 
 export { 
-    get_mst_group_all, 
+    get_mst_group_all,
+    count_mst_group
     // getUserById, 
     // createUser, 
     // updateUser, 
