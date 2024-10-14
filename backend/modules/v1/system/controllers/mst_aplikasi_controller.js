@@ -35,7 +35,7 @@ const get_mst_aplikasi_all = asyncHandler(async (req, res, next) => {
         res.status(200).json({
             statusCode: 200,
             message: {
-                label_message: 'Get Master Group',
+                label_message: 'Get Master Aplikasi',
                 validasi_data: null
             },
             data: mst_aplikasi,
