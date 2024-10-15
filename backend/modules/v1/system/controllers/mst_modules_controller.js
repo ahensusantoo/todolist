@@ -25,23 +25,24 @@ const get_mst_modules_all = asyncHandler(async (req, res, next) => {
 
     // Hardcoded where condition
     let where = {
-        'mm_is_aktif': 1,
+        // 'mm_is_aktif': 1,
         'mm_delete': 'IS NULL'
     };
 
     const mst_modules = await mst_modules_model.get_mst_modules_all({ where, limit, offset, search, single: false });
     if (mst_modules) {
-        const hierarchicalData = buildHierarchy(mst_modules);    
-        console.log(JSON.stringify(mst_modules, null, 2));
-
-
+        const hierarchicalData = buildHierarchy(mst_modules);
+        let response = {
+            modules_hirarki: hierarchicalData,
+            modules_list: mst_modules
+        };
         res.status(200).json({
             statusCode: 200,
             message: {
                 label_message: 'Get Master Modules',
                 validasi_data: null
             },
-            data: hierarchicalData,
+            data: response,
             stack: null
         });
     } else {
