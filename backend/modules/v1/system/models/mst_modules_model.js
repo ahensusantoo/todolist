@@ -27,10 +27,13 @@ const get_mst_modules_all = async ({ where, limit, offset, search, single = fals
 
         query += ' ORDER BY mm_nama ASC';
 
-        // Append limit and offset
-        query += ` LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
-        values.push(limit);
-        values.push(offset);
+        // if(limit != NULL && offset != NULL){
+        //     // Append limit and offset
+        //     query += ` LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+        //     values.push(limit);
+        //     values.push(offset);
+        // }
+        
         // Execute query
         const { rows } = await client.query(query, values.length > 0 ? values : []);
         const record = single ? rows[0] : rows;
