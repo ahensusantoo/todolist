@@ -7,7 +7,7 @@ const get_mst_modules_all = async ({ where, limit, offset, search, single = fals
     const client = await pool.connect();
     try {
         const values = [];
-        let query = 'SELECT * FROM mst_modules';
+        let query = 'SELECT * FROM mst_modules LEFT JOIN mst_privileges ON mm_modulesid=mst_modul_mm_id';
 
         // Build WHERE clause and values
         const { conditions: whereConditions, values: whereValues } = buildWhereClause(where);
