@@ -61,27 +61,70 @@ function buildHierarchy(modules) {
     
     // Buat peta dari modul
     modules.forEach(module => {
-        moduleMap.set(module.mm_modulesid, { ...module, children: [] });
+        moduleMap.set(module.mm_modulesid, { 
+            ...module, 
+            children: [], 
+            actions: {}  
+        });
     });
 
     const hierarchy = [];
 
     // Tambahkan modul ke hierarki berdasarkan mm_parent
     modules.forEach(module => {
+        if (module.mp_id && module.mp_action) {
+            const currentModule = moduleMap.get(module.mm_modulesid);
+            if (currentModule) {
+                currentModule.actions[module.mp_id] = module.mp_action; 
+            }
+        }
+
         if (module.mm_parent === "0" || !moduleMap.has(module.mm_parent)) {
-            // Jika parent tidak ada dalam moduleMap, anggap ini root
             hierarchy.push(moduleMap.get(module.mm_modulesid));
         } else {
-            // Jika parent ada, tambahkan ke children dari parent
             const parent = moduleMap.get(module.mm_parent);
             if (parent) {
-                parent.children.push(moduleMap.get(module.mm_modulesid));
+                const existingChild = parent.children.find(child => child.mm_modulesid === module.mm_modulesid);
+                if (!existingChild) {
+                    parent.children.push(moduleMap.get(module.mm_modulesid));
+                }
             }
         }
     });
 
+    // Hilangkan mp_action dari setiap modul
+    hierarchy.forEach(removeMpAction);
+
+    function removeMpAction(module) {
+        delete module.mp_action;
+        module.children.forEach(removeMpAction);
+    }
+
+    // Urutkan actions sesuai urutan yang diinginkan
+    const order = ["V", "A", "E", "D", "P", "F", "U"];
+    hierarchy.forEach(sortActions);
+
+    function sortActions(module) {
+        const sortedActions = {};
+        order.forEach(action => {
+            for (const [mp_id, mp_action] of Object.entries(module.actions)) {
+                if (mp_action === action) {
+                    sortedActions[mp_id] = mp_action;
+                }
+            }
+        });
+        module.actions = sortedActions;
+        module.children.forEach(sortActions);
+    }
+
     return hierarchy;
 }
+
+
+
+
+
+
 
 
 export {
