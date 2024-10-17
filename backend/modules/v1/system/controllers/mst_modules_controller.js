@@ -9,7 +9,6 @@ import { responseCode } from '../../../../helper/applicationHelper.js';
 // @access Public
 const get_mst_modules_all = asyncHandler(async (req, res, next) => {
     let { search, limit, page, id_applikasi } = req.body;
-    
     // Default values and validations
     if (!limit || limit <= 0 || isNaN(limit)) {
         limit = null; // Default value
@@ -23,18 +22,16 @@ const get_mst_modules_all = asyncHandler(async (req, res, next) => {
         offset = (page - 1) * limit;
     }
 
-    
     // Hardcoded where condition
     let where = {
-        // 'mm_is_aktif': 1,
         'mm_delete': 'IS NULL'
     };
 
-    if (id_applikasi && !isNaN(id_applikasi)) {
+    if (id_applikasi) {
         where['mst_appli_ma_id'] = id_applikasi;
     }
-
     const mst_modules = await mst_modules_model.get_mst_modules_all({ where, limit, offset, search, single: false });
+    
     if (mst_modules) {
         const hierarchicalData = buildHierarchy(mst_modules);
         let response = {
@@ -51,9 +48,10 @@ const get_mst_modules_all = asyncHandler(async (req, res, next) => {
             stack: null
         });
     } else {
-        throw responseCode(500, 'silahkan coba kembali');
+        throw responseCode(500, 'Silahkan coba kembali');
     }
 });
+
 
 
 function buildHierarchy(modules) {

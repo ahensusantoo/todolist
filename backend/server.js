@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { connectDb } from './app/database.js';
 import { notFound, errorHandler, trimMiddleware } from './middleware/errorMiddleware.js';
 import xssClean from './middleware/xssMiddleware.js';
+import bodyParser from 'body-parser';
 
 //helper
 import { responseCode } from './helper/applicationHelper.js';
@@ -23,6 +24,10 @@ app.use(xssClean);
 app.use(trimMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 
 app.get('/', (req, res) => {
   res.send(`selamat datang di aplikasi ${process.env.APP_NAME}`);
