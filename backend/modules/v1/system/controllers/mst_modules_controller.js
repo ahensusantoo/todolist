@@ -52,8 +52,9 @@ const get_mst_modules_all = asyncHandler(async (req, res, next) => {
     }
 });
 
-
-
+// @desc membuat hirarki modul
+// @route -
+// @access private
 function buildHierarchy(modules) {
     const moduleMap = new Map();
     
