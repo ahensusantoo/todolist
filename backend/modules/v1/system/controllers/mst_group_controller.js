@@ -5,42 +5,21 @@ import { responseCode } from '../../../../helper/applicationHelper.js';
 
 
 const validate_mst_group = (isUpdate = false) => {
-    const validations_mst_group = [
-        body('username')
-            .notEmpty().withMessage('Username tidak boleh kosong')
-            .custom((value) => {
-                if (/^\d+$/.test(value)) {
-                    throw new Error('Username tidak boleh hanya angka');
-                }
-                return true;
-            }),
+    const validate_mst_group = [
+        body('mst_group.nama_group')
+            .trim()
+            .notEmpty().withMessage('Nama Group tidak boleh kosong')
+            .isLength({ min: 3, max: 50 }).withMessage('Nama Group harus antara 3 dan 50 karakter'),
+        body('mst_group.deskripsi_group')
+            .trim()
+            .optional(),
+        body('mst_group.aplikasi_default')
+            .optional(),
+        body('mst_group.stts_aktif')
+            .optional()
     ];
 
-    if (!isUpdate) {
-        validations_mst_group.push(
-            body('password')
-                .notEmpty().withMessage('Password tidak boleh kosong')
-                .custom((value) => {
-                    if (/^\d+$/.test(value)) {
-                        throw new Error('Password tidak boleh hanya angka');
-                    }
-                    return true;
-                })
-        );
-    } else {
-        validations_mst_group.push(
-            body('password')
-                .optional()
-                .custom((value) => {
-                    if (value && /^\d+$/.test(value)) {
-                        throw new Error('Password tidak boleh hanya angka');
-                    }
-                    return true;
-                })
-        );
-    }
-
-    return validationsUser;
+    return validate_mst_group;
 };
 
 
@@ -139,47 +118,48 @@ const count_mst_group = asyncHandler(async (req, res, next) => {
 //     }
 // });
 
-// @desc Create New User
+// @desc Create New Master Group
 // @route POST /api/users
 // @access Public
-// const createUser = asyncHandler(async (req, res) => {
-//     const validationsUser = validationResult(req);
-//     if (!validationsUser.isEmpty()) {
-//         throw responseCode(
-//             400,
-//             'Periksa format inputan',
-//             validationsUser.array()
-//         );
-//     }
+const create_mst_group = asyncHandler(async (req, res) => {
+    console.log(req.body);
+    const validate_mst_group = validationResult(req);
+    if (!validate_mst_group.isEmpty()) {
+        throw responseCode(
+            400,
+            'Periksa format inputan',
+            validate_mst_group.array()
+        );
+    }
 
-//     const post = req.body;
-//     // Check if username already exists
-//     const existingUser = await UserModel.checkUsername(post);
-//     if (existingUser) {
-//         throw responseCode(
-//             400,
-//             'Username sudah digunakan',
-//         );
-//     }
+    // const post = req.body;
+    // // Check if username already exists
+    // const existingUser = await UserModel.checkUsername(post);
+    // if (existingUser) {
+    //     throw responseCode(
+    //         400,
+    //         'Username sudah digunakan',
+    //     );
+    // }
 
-//     const createdUser = await UserModel.createUser({ post });
-//     if (createdUser) {
-//         res.status(201).json({
-//             statusCode : 201,
-//             message : {
-//                 label_message : 'Data berhasil di simpan',
-//                 validasi_data : null
-//             },
-//             data : createdUser,
-//             stack : null
-//         });
-//     } else {
-//         throw responseCode(
-//             500,
-//             'Gagal menyimpan data',
-//         );
-//     }
-// });
+    // const createdUser = await UserModel.createUser({ post });
+    // if (createdUser) {
+    //     res.status(201).json({
+    //         statusCode : 201,
+    //         message : {
+    //             label_message : 'Data berhasil di simpan',
+    //             validasi_data : null
+    //         },
+    //         data : createdUser,
+    //         stack : null
+    //     });
+    // } else {
+    //     throw responseCode(
+    //         500,
+    //         'Gagal menyimpan data',
+    //     );
+    // }
+});
 
 // @desc Update User by ID
 // @route PUT /api/users/:id
@@ -262,7 +242,7 @@ export {
     get_mst_group_all,
     count_mst_group,
     // detailUser,
-    // createUser,
+    create_mst_group,
     // updateUser,
     // deleteUser,
     validate_mst_group 
