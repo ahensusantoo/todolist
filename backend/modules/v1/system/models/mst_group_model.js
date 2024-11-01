@@ -1,7 +1,11 @@
 // models/UserModel.js
 import { pool } from '../../../../app/database.js';
 
-import { buildWhereClause } from '../../../../helper/applicationHelper.js';
+import { buildWhereClause, makeID, executeWithTransaction, rollbackSuccessfulInserts } from '../../../../helper/applicationHelper.js';
+
+const table = 'mst_group';
+const id_table = 'mg_id';
+
 
 
 // @ { search, limit, page } bersifat opsinal (tidak wajib di isi)
@@ -9,7 +13,7 @@ const get_mst_group_all = async ({ where, limit, offset, search, single = false 
     const client = await pool.connect();
     try {
         const values = [];
-        let query = 'SELECT * FROM mst_group';
+        let query = 'SELECT * FROM ${table}';
 
         // Build WHERE clause and values
         const { conditions: whereConditions, values: whereValues } = buildWhereClause(where);
@@ -48,7 +52,7 @@ const count_mst_group = async ({ where, search }) => {
     const client = await pool.connect();
     try {
         const values = [];
-        let query = 'SELECT COUNT(*) AS count FROM mst_group';
+        let query = 'SELECT COUNT(*) AS count FROM ${table}';
 
         // Build WHERE clause and values
         const { conditions: whereConditions, values: whereValues } = buildWhereClause(where);
@@ -90,28 +94,67 @@ const count_mst_group = async ({ where, search }) => {
 //     }
 // };
 
-// const createUser = async ({ post }) => {
-//     const client = await pool.connect();
-//     try {
-//         const { username, password, email, user_insert } = post;
-//         // Menggunakan bcrypt untuk menghash password
-//         const hashedPassword = await bcrypt.hash(password, 10); // 10 adalah cost factor untuk kekuatan hash
+const create_group_privileges = async ({ post }) => {
+    const client = await pool.connect();
+    try {
+        const begin_transaction = [];
+        const { nama_group, deskripsi_group, stts_aktif, user_update, aplikasi_default } = post.mst_group;
+        const id_group = await makeID(table, 'MG', 'mg_id');
+        const groupInsertQuery = `
+            INSERT INTO ${table} (mg_id, mg_nama_group, mg_ket_group, mg_is_aktif, mg_user_update, mg_tgl_update, mst_aplikasi_ma_id) 
+            VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6)`;
+        const groupValues = [id_group, nama_group, deskripsi_group, stts_aktif, user_update, aplikasi_default];
+        try {
+            await client.query(groupInsertQuery, groupValues);
 
-//         const id = uuidv4();
-//         const queryText = `
-//             INSERT INTO mst_user(mu_userid, mu_username, mu_password, mu_email, mu_user_insert, mu_tgl_insert, mu_user_update, mu_tgl_update) 
-//             VALUES($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, CURRENT_TIMESTAMP) 
-//             RETURNING *`;
-//         const values = [id, username, hashedPassword, email, user_insert, user_insert];
-//         const { rows } = await client.query(queryText, values);
-//         return rows[0];
-//     } catch (error) {
-//         console.error('Error : ', error);
-//         throw error;
-//     } finally {
-//         client.release();
-//     }
-// };
+        } catch (error) {
+            
+        }
+        
+
+        // Ambil data privileges
+        const privileges = post.privileges;
+        const successfulOperations = [];
+
+        // Eksekusi setiap privilege
+        for (const privilege of privileges) {
+            const id_trans_action = await makeID('trans_action', 'TAC', 'tac_id'); // Generate ID untuk trans_action
+
+            const privilegeInsertQuery = `
+                INSERT INTO trans_action (tac_id, mst_group_mg_id, mst_privileges_mp_id) 
+                VALUES ($1, $2, $3)`;
+            const privilegeValues = [id_trans_action, id_group, privilege];
+
+            try {
+                await client.query(privilegeInsertQuery, privilegeValues);
+                await client.query('COMMIT');
+                successfulOperations.push({ id: id_trans_action }); // Simpan ID privilege yang berhasil
+            } catch (error) {
+                console.error('Privilege insert failed:', error);
+                // Jika ada kesalahan, rollback dan lempar error
+                await client.query('ROLLBACK');
+                throw new Error('Transaction failed. All changes rolled back.');
+            }
+        }
+
+        // Jika semua berhasil, commit
+       
+        return { id_group }; // Kembalikan ID grup yang baru dibuat
+    } catch (error) {
+        console.error('Error during transaction:', error);
+        await client.query('ROLLBACK'); // Pastikan untuk rollback jika ada kesalahan
+        throw error; // Lempar error untuk penanganan lebih lanjut
+    } finally {
+        client.release(); // Mengembalikan koneksi
+    }
+};
+
+
+
+
+
+
+
 
 
 // const updateUser = async (post, id) => {
@@ -161,28 +204,28 @@ const count_mst_group = async ({ where, search }) => {
 //     }
 // };
 
-// const checkUsername = async (post = null, id= null) => {
-//     const client = await pool.connect();
-//     try {
-//         const { username } = post;
-//         const queryText = 'SELECT * FROM mst_user WHERE LOWER(mu_username) = LOWER($1)';
-//         const { rows } = await client.query(queryText, [username]);
-//         return rows[0]; // Mengembalikan baris pertama dari hasil query
-//     } catch (error) {
-//         console.error('Error : ', error);
-//         throw error;
-//     } finally {
-//         client.release();
-//     }
-// };
+const check_group_name = async (post = null, id= null) => {
+    const client = await pool.connect();
+    try {
+        const { nama_group } = post.nama_group;
+        const queryText = 'SELECT * FROM mst_group WHERE LOWER(mg_nama_group) = LOWER($1)';
+        const { rows } = await client.query(queryText, [nama_group]);
+        return rows[0];
+    } catch (error) {
+        console.error('Error : ', error);
+        throw error;
+    } finally {
+        client.release();
+    }
+};
 
 
 export { 
     get_mst_group_all,
-    count_mst_group
+    count_mst_group,
     // getUserById, 
-    // createUser, 
+    create_group_privileges, 
     // updateUser, 
     // deleteUser, 
-    // checkUsername 
+    check_group_name 
 };

@@ -122,7 +122,6 @@ const count_mst_group = asyncHandler(async (req, res, next) => {
 // @route POST /api/users
 // @access Public
 const create_mst_group = asyncHandler(async (req, res) => {
-    console.log(req.body);
     const validate_mst_group = validationResult(req);
     if (!validate_mst_group.isEmpty()) {
         throw responseCode(
@@ -131,34 +130,36 @@ const create_mst_group = asyncHandler(async (req, res) => {
             validate_mst_group.array()
         );
     }
-
-    // const post = req.body;
-    // // Check if username already exists
-    // const existingUser = await UserModel.checkUsername(post);
-    // if (existingUser) {
-    //     throw responseCode(
-    //         400,
-    //         'Username sudah digunakan',
-    //     );
-    // }
-
-    // const createdUser = await UserModel.createUser({ post });
-    // if (createdUser) {
-    //     res.status(201).json({
-    //         statusCode : 201,
-    //         message : {
-    //             label_message : 'Data berhasil di simpan',
-    //             validasi_data : null
-    //         },
-    //         data : createdUser,
-    //         stack : null
-    //     });
-    // } else {
-    //     throw responseCode(
-    //         500,
-    //         'Gagal menyimpan data',
-    //     );
-    // }
+    
+    const post = req.body;
+    // console.log(post.mst_group)
+    // Check if name group already exists
+    const existingGroup = await mst_group_model.check_group_name(post.mst_group);
+    if (existingGroup) {
+        throw responseCode(
+            400,
+            'Nama Group sudah digunakan',
+        );
+    }
+    
+    const create_group_privileges = await mst_group_model.create_group_privileges({ post });
+    console.log(create_group_privileges)
+    if (create_group_privileges) {
+        res.status(201).json({
+            statusCode : 201,
+            message : {
+                label_message : 'Data berhasil di simpan',
+                validasi_data : null
+            },
+            data : create_group_privileges,
+            stack : null
+        });
+    } else {
+        throw responseCode(
+            500,
+            'Gagal menyimpan data',
+        );
+    }
 });
 
 // @desc Update User by ID
