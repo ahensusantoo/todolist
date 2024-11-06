@@ -34,31 +34,31 @@ const buildWhereClause = (where) => {
 };
 
 
-const makeID = async (table, kode, id_column_name) => {
+const makeID = async (prefix, sequenceName) => {
     // Validasi parameter
-    if (typeof table !== 'string' || typeof kode !== 'string' || typeof id_column_name !== 'string') {
+    if (typeof prefix !== 'string' || typeof sequenceName !== 'string' ) {
         throw responseCode(403, 'Parameter membuat ID harus berupa string dan tidak boleh kosong');
     }
 
     // Query untuk memanggil fungsi PostgreSQL
     const query = `
-        SELECT makeID($1, $2, $3) AS id
+        SELECT make_unique_id($1, $2) AS id
     `;
 
     try {
-        const result = await pool.query(query, [table, kode, id_column_name]);
-        
+        const result = await pool.query(query, [prefix, sequenceName]);
         // Pastikan result.rows tidak kosong sebelum mengakses
         if (result.rows.length === 0) {
             throw responseCode(404, 'ID tidak ditemukan');
         }
 
-        return result.rows[0].id; // Mengembalikan ID yang dihasilkan
+        return result.rows[0].id;
     } catch (error) {
         console.error('Error executing query:', error.stack);
         throw responseCode(400, 'Gagal membuat ID');
     }
 };
+
 
 const executeWithTransaction = async (client, operations) => {
     const successfulOperations = [];

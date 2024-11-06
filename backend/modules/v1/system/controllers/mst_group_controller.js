@@ -135,6 +135,7 @@ const create_mst_group = asyncHandler(async (req, res) => {
     // console.log(post.mst_group)
     // Check if name group already exists
     const existingGroup = await mst_group_model.check_group_name(post.mst_group);
+    // console.log(existingGroup)
     if (existingGroup) {
         throw responseCode(
             400,
