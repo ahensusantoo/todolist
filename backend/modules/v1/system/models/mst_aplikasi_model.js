@@ -1,10 +1,10 @@
-import { pool } from '../../../../app/database.js';
+import { pool, connectDb } from '../../../../app/database.js';
 import { buildWhereClause } from '../../../../helper/applicationHelper.js';
 
 
 // @ { search, limit, page } bersifat opsinal (tidak wajib di isi)
 const get_mst_aplikasi_all = async ({ where, limit, offset, search, single = false }) => {
-    const client = await pool.connect();
+    const client = await connectDb();
     try {
         const values = [];
         let query = 'SELECT * FROM mst_aplikasi';

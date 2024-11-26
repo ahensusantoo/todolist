@@ -1,7 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import * as mst_modules_model from '../models/mst_modules_model.js';
 // import { body, validationResult } from 'express-validator';
-import { responseCode } from '../../../../helper/applicationHelper.js';
 
 
 // @desc Get All aplikasi

@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import * as mst_group_model from '../models/mst_group_model.js';
 import { body, validationResult } from 'express-validator';
 import { responseCode } from '../../../../helper/applicationHelper.js';
+import { pool, connectDb } from  '../../../../app/database.js'
 
 
 const validate_mst_group = (isUpdate = false) => {

@@ -1,5 +1,6 @@
 // models/UserModel.js
-import { pool } from '../../../../app/database.js';
+
+import { pool, connectDb } from  '../../../../app/database.js'
 
 import { buildWhereClause, makeID} from '../../../../helper/applicationHelper.js';
 
@@ -10,7 +11,7 @@ const id_table = 'mg_id';
 
 // @ { search, limit, page } bersifat opsinal (tidak wajib di isi)
 const get_mst_group_all = async ({ where, limit, offset, search, single = false }) => {
-    const client = await pool.connect();
+    const client = await connectDb();
     try {
         const values = [];
         let query = 'SELECT * FROM ${table}';
@@ -95,7 +96,7 @@ const count_mst_group = async ({ where, search }) => {
 // };
 
 const create_group_privileges = async ({ post }) => {
-    const client = await pool.connect();
+    const client = await connectDb();
     try {
         await client.query('BEGIN'); // Mulai transaksi
 

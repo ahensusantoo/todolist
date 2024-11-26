@@ -12,10 +12,13 @@ const pool = new pg.Pool({
     port: process.env.DB_PORT,
 });
 
-async function connectDb() {
+async function connectDb(schema = process.env.DB_SCHEMA) {
+    const client = await pool.connect();
     try {
-        const client = await pool.connect();
+        // Set schema default pada koneksi
+        await client.query(`SET search_path TO ${schema}`);
         console.log(`Terhubung ke PostgreSQL dengan host: ${process.env.DB_HOST}:${process.env.DB_PORT} ~ ${process.env.DB_DATABASE}`);
+        console.log(`Schema yang digunakan: ${schema}`);
         return client;
     } catch (err) {
         console.error('Koneksi gagal:', err.stack);

@@ -1,7 +1,7 @@
-import { pool } from '../../../../app/database.js';
+import { pool, connectDb } from '../../../../app/database.js';
 
 const login = async ({ username }) => {
-    const client = await pool.connect(); // Menggunakan await untuk mendapatkan client dari pool
+    const client = await connectDb(); // Menggunakan await untuk mendapatkan client dari pool
     try {
         const queryText = `SELECT * FROM mst_users WHERE mu_username = $1 OR mu_email = $1`;
         const values = [username];

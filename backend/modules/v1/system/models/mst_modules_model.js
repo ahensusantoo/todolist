@@ -1,9 +1,9 @@
-import { pool } from '../../../../app/database.js';
+import { pool, connectDb } from '../../../../app/database.js';
 import { buildWhereClause } from '../../../../helper/applicationHelper.js';
 
 // @ { search, limit, page } bersifat opsional (tidak wajib di isi)
 const get_mst_modules_all = async ({ where, limit, offset, search, single = false }) => {
-    const client = await pool.connect();
+    const client = await connectDb();
     try {
         const values = [];
         let query = 'SELECT * FROM mst_modules LEFT JOIN mst_privileges ON mm_modulesid = mst_modules_mm_id';
