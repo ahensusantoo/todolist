@@ -25,7 +25,7 @@ const validate_mst_group = (isUpdate = false) => {
 
 
 // @desc Get All mst_group
-// @route GET /api/version/mst_group
+// @route GET /api/version/system/mst_group
 // @access Public
 const get_mst_group_all = asyncHandler(async (req, res, next) => {
     let { search, limit, page } = req.body;
@@ -67,7 +67,7 @@ const get_mst_group_all = asyncHandler(async (req, res, next) => {
 });
 
 // @desc Count All mst_group
-// @route GET /api/version/mst_group
+// @route GET /api/version/system/mst_group
 // @access Public
 const count_mst_group = asyncHandler(async (req, res, next) => {
     let { search} = req.body;
@@ -95,32 +95,32 @@ const count_mst_group = asyncHandler(async (req, res, next) => {
 });
 
 
-// @desc Get Detail User by ID
-// @route GET /api/users/:id
+// @desc Get Detail Group With Privileges by ID Group
+// @route GET api/version/system/mst_group/:id
 // @access Public
-// const detailUser = asyncHandler(async (req, res) => {
-//     const { id } = req.params;
-//     const users = await UserModel.getUserById(id);
-//     if (users) {
-//         res.status(200).json({
-//             statusCode: 200,
-//             message: {
-//                 label_message: 'all users',
-//                 validasi_data: null
-//             },
-//             data: users,
-//             stack: null
-//         });
-//     } else {
-//         throw responseCode(
-//             404,
-//             'Data tidak ditemukan',
-//         );
-//     }
-// });
+const get_mst_group_by_id = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const mst_group = await mst_group_model.get_mst_group_by_id(id);
+    if (mst_group) {
+        res.status(200).json({
+            statusCode: 200,
+            message: {
+                label_message: 'Master group with Privileges',
+                validasi_data: null
+            },
+            data: mst_group,
+            stack: null
+        });
+    } else {
+        throw responseCode(
+            404,
+            'Data tidak ditemukan',
+        );
+    }
+});
 
-// @desc Create New Master Group
-// @route POST /api/users
+// @desc Create New Master Group With Privileges
+// @route POST /api/version/system/mst_group
 // @access Public
 const create_mst_group = asyncHandler(async (req, res) => {
     const validate_mst_group = validationResult(req);
@@ -140,7 +140,7 @@ const create_mst_group = asyncHandler(async (req, res) => {
     if (existingGroup) {
         throw responseCode(
             400,
-            'Nama Group sudah digunakan',
+            `Nama Group sudah digunakan ${existingGroup.mg_nama_group}`,
         );
     }
     
@@ -244,7 +244,7 @@ const create_mst_group = asyncHandler(async (req, res) => {
 export {
     get_mst_group_all,
     count_mst_group,
-    // detailUser,
+    get_mst_group_by_id,
     create_mst_group,
     // updateUser,
     // deleteUser,
