@@ -140,7 +140,7 @@ const create_mst_group = asyncHandler(async (req, res) => {
     if (existingGroup) {
         throw responseCode(
             400,
-            `Nama Group sudah digunakan ${existingGroup.mg_nama_group}`,
+            `Nama Group ${existingGroup.mg_nama_group} sudah digunakan`,
         );
     }
     

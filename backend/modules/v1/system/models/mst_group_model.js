@@ -105,16 +105,16 @@ const create_group_privileges = async ({ post }) => {
     const client = await connectDb();
     try {
         await client.query('BEGIN'); // Mulai transaksi
-
-        // Mengambil data grup dari `post.mst_group`
         const { nama_group, deskripsi_group, stts_aktif, user_update, aplikasi_default } = post.mst_group;
+        const isActive = (stts_aktif === true || stts_aktif === 'true') ? 1 : 0;
+
         const id_group = await makeID('MG', 'sc_mst_group'); // Menghasilkan ID untuk grup
         const groupInsertQuery = `
             INSERT INTO ${table} (mg_id, mg_nama_group, mg_ket_group, mg_is_aktif, mg_user_update, mg_tgl_update, mst_aplikasi_ma_id) 
             VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6)
             RETURNING mg_id, mg_nama_group, mg_ket_group, mg_is_aktif, mg_user_update, mg_tgl_update, mst_aplikasi_ma_id`;
 
-        const groupValues = [id_group, nama_group, deskripsi_group, stts_aktif, user_update, aplikasi_default];
+        const groupValues = [id_group, nama_group, deskripsi_group, isActive, user_update, aplikasi_default];
         
         // Mengambil hasil dari query INSERT
         const result_mst_group = await client.query(groupInsertQuery, groupValues);
