@@ -91,8 +91,9 @@ const get_mst_group_by_id = async (id) => {
             SELECT * 
             FROM mst_group mg 
             LEFT JOIN trans_action tac ON mg.mg_id = tac.mst_group_mg_id
+            LEFT JOIN mst_privileges mp ON mp.mp_id = tac.mst_privileges_mp_id
             WHERE mg_id = $1`, [id]);
-        return rows[0];
+        return rows;
     }catch (error) {
         console.error('Error : ', error);
         throw error;

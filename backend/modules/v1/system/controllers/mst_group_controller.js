@@ -101,14 +101,44 @@ const count_mst_group = asyncHandler(async (req, res, next) => {
 const get_mst_group_by_id = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const mst_group = await mst_group_model.get_mst_group_by_id(id);
-    if (mst_group) {
+
+    if (mst_group && mst_group.length > 0) {
+        let mst_groupData = null;
+        let mst_actionData = [];
+
+        mst_group.forEach(row => {
+            if (!mst_groupData) {
+                mst_groupData = {
+                    mg_id: row.mg_id,
+                    mg_nama_group: row.mg_nama_group,
+                    mg_ket_group: row.mg_ket_group,
+                    mg_is_aktif: row.mg_is_aktif,
+                    mg_user_update: row.mg_user_update,
+                    mg_tgl_update: row.mg_tgl_update,
+                    mst_aplikasi_ma_id: row.mst_aplikasi_ma_id,
+                    mst_group_mg_id: row.mst_group_mg_id,
+                };
+            }
+
+            if (row.tac_id) {
+                mst_actionData.push({
+                    tac_id: row.tac_id,
+                    mst_group_mg_id: row.mst_group_mg_id,
+                    mst_privileges_mp_id: row.mst_privileges_mp_id,
+                    mst_modules_mm_id : row.mst_modules_mm_id
+                });
+            }
+        });
         res.status(200).json({
             statusCode: 200,
             message: {
                 label_message: 'Master group with Privileges',
                 validasi_data: null
             },
-            data: mst_group,
+            data: {
+                mst_group: mst_groupData,
+                mst_action: mst_actionData
+            },
             stack: null
         });
     } else {
