@@ -312,22 +312,29 @@ const check_trans_action = async ({ id_group, id_privileges, id_trans_privileges
 //     }
 // };
 
-const check_group_name = async (post = null, id= null) => {
+const check_group_name = async (post = null) => {
     const client = await connectDb();
     try {
-        const { nama_group } = post;
-        const queryText = 'SELECT * FROM mst_group WHERE LOWER(mg_nama_group) = LOWER($1)';
-        const { rows } = await client.query(queryText, [nama_group]);
+        const { nama_group, id } = post;
+        let queryText = 'SELECT * FROM mst_group WHERE LOWER(mg_nama_group) = LOWER($1)';
+        let queryParams = [nama_group];
+
+        //check jika proses update cari yang selain id dia sendiri
+        if (id && id !== '') {
+            queryText += ' AND mg_id != $2';
+            queryParams.push(id);
+        }
+
+        // Execute the query
+        const { rows } = await client.query(queryText, queryParams);
         return rows[0];
     } catch (error) {
-        throw responseCode(
-            500,
-            error,
-        );
+        throw responseCode(500, error);
     } finally {
         client.release();
     }
 };
+
 
 
 export { 
