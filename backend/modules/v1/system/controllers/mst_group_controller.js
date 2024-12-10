@@ -163,10 +163,8 @@ const create_mst_group = asyncHandler(async (req, res) => {
     }
     
     const post = req.body;
-    // console.log(post.mst_group)
     // Check if name group already exists
-    const existingGroup = await mst_group_model.check_group_name(post.mst_group);
-    // console.log(existingGroup)
+    const existingGroup = await mst_group_model.check_group_name(null, post.mst_group);
     if (existingGroup) {
         throw responseCode(
             400,
@@ -208,19 +206,8 @@ const update_mst_group = asyncHandler(async (req, res) => {
         );
     }
     const post = req.body;
-
     // Check if username already exists for another user
-    const existingUser = await UserModel.checkUsername(post);
-    if (existingUser && existingUser.mu_userid != id) {
-        throw responseCode(
-            400,
-            'Username sudah digunakan',
-            []
-        );
-    }
-
-    const existingGroup = await mst_group_model.check_group_name(post.mst_group);
-    // console.log(existingGroup)
+    const existingGroup = await mst_group_model.check_group_name(id, post.mst_group);
     if (existingGroup) {
         throw responseCode(
             400,
@@ -228,16 +215,15 @@ const update_mst_group = asyncHandler(async (req, res) => {
         );
     }
     
-    const create_group_privileges = await mst_group_model.create_group_privileges({ post });
-    console.log(create_group_privileges)
-    if (create_group_privileges) {
+    const update_group_privileges = await mst_group_model.update_group_privileges({ id, post });
+    if (update_group_privileges) {
         res.status(201).json({
-            statusCode : 201,
+            statusCode : 200,
             message : {
-                label_message : 'Data berhasil di simpan',
+                label_message : 'Data berhasil di simpan/update',
                 validasi_data : null
             },
-            data : create_group_privileges,
+            data : update_group_privileges,
             stack : null
         });
     } else {

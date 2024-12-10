@@ -160,13 +160,14 @@ const create_group_privileges = async ({ post }) => {
 
 
 
-const update_group_privileges = async ({ post }) => {
+const update_group_privileges = async ({id, post }) => {
     const client = await connectDb();
     try {
         await client.query('BEGIN'); // Mulai transaksi
 
         // Mengambil data grup dari `post.mst_group`
-        const { id_group, nama_group, deskripsi_group, stts_aktif, user_update, aplikasi_default } = post.mst_group;
+        const { nama_group, deskripsi_group, stts_aktif, user_update, aplikasi_default } = post.mst_group;
+        const isActive = (stts_aktif === true || stts_aktif === 'true') ? 1 : 0;
 
         // Query untuk mengupdate grup
         const groupUpdateQuery = `
@@ -175,14 +176,14 @@ const update_group_privileges = async ({ post }) => {
             WHERE mg_id = $6
             RETURNING mg_id, mg_nama_group, mg_ket_group, mg_is_aktif, mg_user_update, mg_tgl_update, mst_aplikasi_ma_id`;
 
-        const groupValues = [nama_group, deskripsi_group, stts_aktif, user_update, aplikasi_default, id_group];
+        const groupValues = [nama_group, deskripsi_group, isActive, user_update, aplikasi_default, id];
         
         // Mengambil hasil dari query UPDATE
         const result_mst_group = await client.query(groupUpdateQuery, groupValues);
         if (result_mst_group.rows.length === 0) {
             throw responseCode(
                 403,
-                `Grup dengan ID ${id_group} tidak ditemukan.`,
+                `Grup tidak ditemukan.`,
             );
         }
 
@@ -190,14 +191,14 @@ const update_group_privileges = async ({ post }) => {
 
         // Menghapus hak akses yang ada
         const deletePrivilegesQuery = `DELETE FROM trans_action WHERE mst_group_mg_id = $1`;
-        await client.query(deletePrivilegesQuery, [id_group]);
+        await client.query(deletePrivilegesQuery, [id]);
 
         // Eksekusi setiap privilege yang baru
         for (const privilege of post.privileges) {
             const id_trans_action = await makeID('TAC', 'sc_trans_action');
             
             // Memeriksa apakah hak akses sudah ada
-            const existingTransAction = await check_trans_action(id_group, privilege);
+            const existingTransAction = await check_trans_action(id, privilege);
             
             if (existingTransAction) {
                 await client.query('ROLLBACK');
@@ -212,7 +213,7 @@ const update_group_privileges = async ({ post }) => {
                 INSERT INTO trans_action (tac_id, mst_group_mg_id, mst_privileges_mp_id) 
                 VALUES ($1, $2, $3)`;
 
-            const privilegeValues = [id_trans_action, id_group, privilege];
+            const privilegeValues = [id_trans_action, id, privilege];
             await client.query(privilegeInsertQuery, privilegeValues);
         }
 
@@ -230,6 +231,51 @@ const update_group_privileges = async ({ post }) => {
     }
 };
 
+const delete_group_privileges = async ({id}) => {
+    const client = await connectDb();
+    try {
+        await client.query('BEGIN'); // Mulai transaksi
+
+        // Mengambil data grup yang akan dihapus
+        const selectGroupQuery = `SELECT mg_id, mg_nama_group FROM ${table} WHERE mg_id = $1`;
+        const result_group = await client.query(selectGroupQuery, [id]);
+        
+        if (result_group.rows.length === 0) {
+            throw responseCode(
+                404,
+                `Grup tidak ditemukan.`
+            );
+        }
+
+        const groupName = result_group.rows[0].mg_nama_group;
+
+        // Hapus hak akses yang terkait dengan grup
+        const deletePrivilegesQuery = `DELETE FROM trans_action WHERE mst_group_mg_id = $1`;
+        await client.query(deletePrivilegesQuery, [id]);
+
+        // Hapus grup itu sendiri
+        const deleteGroupQuery = `DELETE FROM ${table} WHERE mg_id = $1 RETURNING mg_id, mg_nama_group`;
+        const result_delete_group = await client.query(deleteGroupQuery, [id]);
+
+        if (result_delete_group.rows.length === 0) {
+            throw responseCode(
+                403,
+                `Gagal menghapus grup dengan ${groupName}.`
+            );
+        }
+
+        await client.query('COMMIT');
+        return result_delete_group.rows[0];
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw responseCode(
+            500,
+            error
+        );
+    } finally {
+        client.release();
+    }
+};
 
 
 const check_trans_action = async ({ id_group, id_privileges, id_trans_privileges = null }) => {
@@ -252,70 +298,12 @@ const check_trans_action = async ({ id_group, id_privileges, id_trans_privileges
         client.release(); // Mengembalikan koneksi
     }
 };
- 
 
 
-
-
-
-
-
-
-
-
-
-
-// const updateUser = async (post, id) => {
-//     const client = await pool.connect();
-//     try {
-//         const { username, password, email, user_update } = post;
-//         let values = [username];
-//         let queryText = 'UPDATE mst_user SET mu_username = $1';
-        
-//         // Jika password ada, tambahkan ke query dan values
-//         if (password && password.trim() !== '') {
-//             const hashedPassword = await bcrypt.hash(password, 10);
-//             queryText += ', mu_password = $2';
-//             values.push(hashedPassword);
-//         }
-
-//         if (email) {
-//             queryText += ', mu_email = $' + (values.length + 1);
-//             values.push(email);
-//         }
-
-//         queryText += ', mu_tgl_update = CURRENT_TIMESTAMP';
-
-//         queryText += ' WHERE mu_userid = $' + (values.length + 1) + ' RETURNING *';
-//         values.push(id);
-
-//         const { rows } = await client.query(queryText, values);
-//         return rows[0];
-//     } catch (error) {
-//         console.error('Error : ', error);
-//         throw error;
-//     } finally {
-//         client.release();
-//     }
-// };
-
-// const deleteUser = async (id) => {
-//     const client = await pool.connect();
-//     try {
-//         const { rows } = await client.query('DELETE FROM users WHERE id = $1 RETURNING *', [id]);
-//         return rows[0];
-//     } catch (error) {
-//         console.error('Error : ', error);
-//         throw error;
-//     } finally {
-//         client.release();
-//     }
-// };
-
-const check_group_name = async (post = null) => {
+const check_group_name = async (id, post = null) => {
     const client = await connectDb();
     try {
-        const { nama_group, id } = post;
+        const { nama_group } = post;
         let queryText = 'SELECT * FROM mst_group WHERE LOWER(mg_nama_group) = LOWER($1)';
         let queryParams = [nama_group];
 
@@ -343,6 +331,6 @@ export {
     get_mst_group_by_id, 
     create_group_privileges, 
     update_group_privileges, 
-    // deleteUser, 
+    delete_group_privileges, 
     check_group_name 
 };
