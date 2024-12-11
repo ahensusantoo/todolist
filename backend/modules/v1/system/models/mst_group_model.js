@@ -119,7 +119,6 @@ const create_group_privileges = async ({ post }) => {
         
         // Mengambil hasil dari query INSERT
         const result_mst_group = await client.query(groupInsertQuery, groupValues);
-        console.log('Data grup yang dimasukkan:', result_mst_group.rows[0]); // Debugging log
 
         // Eksekusi setiap privilege
         for (const privilege of post.privileges) {
@@ -186,9 +185,6 @@ const update_group_privileges = async ({id, post }) => {
                 `Grup tidak ditemukan.`,
             );
         }
-
-        console.log('Data grup yang diperbarui:', result_mst_group.rows[0]); // Debugging log
-
         // Menghapus hak akses yang ada
         const deletePrivilegesQuery = `DELETE FROM trans_action WHERE mst_group_mg_id = $1`;
         await client.query(deletePrivilegesQuery, [id]);
@@ -231,7 +227,7 @@ const update_group_privileges = async ({id, post }) => {
     }
 };
 
-const delete_group_privileges = async ({id}) => {
+const delete_group_privileges = async (id) => {
     const client = await connectDb();
     try {
         await client.query('BEGIN'); // Mulai transaksi
@@ -239,7 +235,6 @@ const delete_group_privileges = async ({id}) => {
         // Mengambil data grup yang akan dihapus
         const selectGroupQuery = `SELECT mg_id, mg_nama_group FROM ${table} WHERE mg_id = $1`;
         const result_group = await client.query(selectGroupQuery, [id]);
-        
         if (result_group.rows.length === 0) {
             throw responseCode(
                 404,

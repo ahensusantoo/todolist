@@ -234,37 +234,40 @@ const update_mst_group = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc Delete User by ID
-// @route DELETE /api/users/:id
+// @desc Delete mst Group by ID
+// @route DELETE /api/version/system/mst_group/:id
 // @access Public
-// const deleteUser = asyncHandler(async (req, res) => {
-//     const { id } = req.params;
-//     const users = await UserModel.getUserById(id);
-//     if(users){
-//         const deleteUser = await UserModel.deleteUser(id);
-//         if(deleteUser){
-//             res.status(200).json({
-//                 statusCode : 200,
-//                 message : {
-//                     label_message : 'Data berhasil di hapus',
-//                     validasi_data : null
-//                 },
-//                 data : deleteUser,
-//                 stack : null
-//             });
-//         }else{
-//             throw responseCode(
-//                 500,
-//                 'Kesalahan system, silahkan coba kembali'
-//             ); 
-//         }
-//     }else{
-//         throw responseCode(
-//             404,
-//             'Data tidak ditemukan'
-//         );
-//     }
-// });
+const delete_mst_group = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    // Validate the id
+    if (!id) {
+        throw responseCode(
+            400,
+            'ID group tidak ditemukan',
+        );
+    }
+
+    // Delete the group from the database
+    const deleteGroup = await mst_group_model.delete_group_privileges(id);
+    if (deleteGroup) {
+        res.status(200).json({
+            statusCode: 200,
+            message: {
+                label_message: 'Data berhasil dihapus',
+                validasi_data: null
+            },
+            data: deleteGroup,
+            stack: null
+        });
+    } else {
+        throw responseCode(
+            500,
+            'Gagal menghapus data',
+        );
+    }
+});
+
 
 export {
     get_mst_group_all,
@@ -272,6 +275,6 @@ export {
     get_mst_group_by_id,
     create_mst_group,
     update_mst_group,
-    // deleteUser,
+    delete_mst_group,
     validate_mst_group 
 };
