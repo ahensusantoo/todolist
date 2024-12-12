@@ -28,7 +28,7 @@ const validate_mst_group = (isUpdate = false) => {
 // @route GET /api/version/system/mst_group
 // @access Public
 const get_mst_group_all = asyncHandler(async (req, res, next) => {
-    let { search, limit, page } = req.body;
+    let { search, limit, page, status_aktif } = req.body;
     
     // Default values and validations
     if (!limit || limit <= 0 || isNaN(limit)) {
@@ -43,12 +43,7 @@ const get_mst_group_all = asyncHandler(async (req, res, next) => {
         offset = (page - 1) * limit;
     }
 
-    // Hardcoded where condition
-    let where = {
-        'mg_is_aktif': 1,
-        // 'mu_delete': 'IS NULL'
-    };
-
+    let where = status_aktif ? { mg_is_aktif: status_aktif } : null;
     const mst_group = await mst_group_model.get_mst_group_all({ where, limit, offset, search, single: false });
     
     if (mst_group) {
@@ -70,12 +65,9 @@ const get_mst_group_all = asyncHandler(async (req, res, next) => {
 // @route GET /api/version/system/mst_group
 // @access Public
 const count_mst_group = asyncHandler(async (req, res, next) => {
-    let { search} = req.body;
+    let { search, status_aktif} = req.body;
     // Hardcoded where condition
-    let where = {
-        'mg_is_aktif': 1,
-        // 'mu_delete': 'IS NULL'
-    };
+    let where = status_aktif ? { mg_is_aktif: status_aktif } : null;
 
     const mst_group = await mst_group_model.count_mst_group({where, search});
     
@@ -173,7 +165,6 @@ const create_mst_group = asyncHandler(async (req, res) => {
     }
     
     const create_group_privileges = await mst_group_model.create_group_privileges({ post });
-    console.log(create_group_privileges)
     if (create_group_privileges) {
         res.status(201).json({
             statusCode : 201,
