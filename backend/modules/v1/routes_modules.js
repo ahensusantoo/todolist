@@ -29,4 +29,11 @@ import loginRoutes from './main/routes/mainRoutes.js';
 // folder auth end
 
 
+
+// folder sdm start
+    import profil_pegawai_routes from './sdm/routes/profil_pegawai_routes.js';
+    router.use('/sdm/profil_pegawai', profil_pegawai_routes);
+// folder sdm end
+
+
 export default router;

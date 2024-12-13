@@ -1,13 +1,12 @@
 import asyncHandler from 'express-async-handler';
-import * as mst_user_model from '../models/mst_user_model.js';
+import * as profil_pegawai_model from '../models/profil_pegawai_model.js';
 // import { body, validationResult } from 'express-validator';
 import { responseCode } from '../../../../helper/applicationHelper.js';
 
-
-// @desc Get All user
-// @route GET /api/version/mst_user
+// @desc Get All Pegawai
+// @route GET /api/version/profil_pegawai
 // @access Public
-const get_mst_user_all = asyncHandler(async (req, res, next) => {
+const get_profil_pegawai_all = asyncHandler(async (req, res, next) => {
     let { search, limit, page } = req.body;
     
     // Default values and validations
@@ -28,7 +27,7 @@ const get_mst_user_all = asyncHandler(async (req, res, next) => {
         'mu_delete': 'IS NULL'
     };
 
-    const mst_user = await mst_user_model.get_mst_user_all({ where, limit, offset, search, single: false });
+    const mst_user = await profil_pegawai_model.get_profil_pegawai_all({ where, limit, offset, search, single: false });
     // console.log(mst_user)
     if (mst_user) {
         let mst_userData = [];
@@ -79,32 +78,12 @@ const get_mst_user_all = asyncHandler(async (req, res, next) => {
     
 });
 
-// @desc Count All mst_user
-// @route GET /api/version/system/mst_user
-// @access Public
-const count_mst_user = asyncHandler(async (req, res, next) => {
-    let { search, status_aktif} = req.body;
-    // Hardcoded where condition
-    let where = status_aktif ? { mg_is_aktif: status_aktif } : null;
 
-    const mst_user = await mst_user_model.count_mst_user({where, search});
-    if (mst_user) {
-        res.status(200).json({
-            statusCode: 200,
-            message: {
-                label_message: 'Get Master Group',
-                validasi_data: null
-            },
-            data: mst_user,
-            stack: null
-        });
-    } else {
-        throw responseCode(500, 'silahkan coba kembali');
-    }
-});
 
 
 export {
-    get_mst_user_all,
-    count_mst_user
-};
+    get_profil_pegawai_all
+}
+
+
+
