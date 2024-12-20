@@ -49,6 +49,41 @@ const get_profil_pegawai_all = async ({ where, limit, offset, search, single = f
     }
 };
 
+// Fungsi untuk menghitung jumlah pegawai
+const count_profil_pegawai = async ({ where, search }) => {
+    const client = await connectDb();
+    try {
+        const values = [];
+        let query = `SELECT COUNT(*) AS count FROM ${table}`;
+
+        // Build WHERE clause and values
+        const { conditions: whereConditions, values: whereValues } = buildWhereClause(where);
+
+        // Add WHERE clause to the query
+        if (whereConditions) {
+            query += ` WHERE ${whereConditions}`;
+            values.push(...whereValues);
+        }
+
+        // Handle search parameter
+        if (search) {
+            const searchCondition = `mpg_nama_lengkap LIKE $${values.length + 1}`;
+            query += whereConditions ? ` AND (${searchCondition})` : ` WHERE ${searchCondition}`;
+            values.push(`%${search}%`);
+        }
+
+        // Execute query
+        const { rows } = await client.query(query, values);
+        return rows[0].count;
+    } catch (error) {
+        console.error('Error : ', error);
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 export {
-    get_profil_pegawai_all
+    get_profil_pegawai_all,
+    count_profil_pegawai
 }

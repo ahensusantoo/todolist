@@ -45,11 +45,36 @@ const get_profil_pegawai_all = asyncHandler(async (req, res, next) => {
     
 });
 
+// @desc Count All pegawai
+// @route GET /api/version/sdm/profil_pegawai/count
+// @access Public
+const count_profil_pegawai = asyncHandler(async (req, res, next) => {
+    let { search, status_aktif} = req.body;
+    // Hardcoded where condition
+    let where = status_aktif ? { mg_is_aktif: status_aktif } : null;
+
+    const count_profil_pegawai = await profil_pegawai_model.count_profil_pegawai({where, search});
+    if (count_profil_pegawai) {
+        res.status(200).json({
+            statusCode: 200,
+            message: {
+                label_message: 'Count Pegawai',
+                validasi_data: null
+            },
+            data: count_profil_pegawai,
+            stack: null
+        });
+    } else {
+        throw responseCode(500, 'silahkan coba kembali');
+    }
+});
+
 
 
 
 export {
-    get_profil_pegawai_all
+    get_profil_pegawai_all,
+    count_profil_pegawai
 }
 
 

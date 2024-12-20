@@ -86,7 +86,28 @@ const count_mst_user = async ({ where, search }) => {
     }
 };
 
+//get user by id
+const get_mst_user_by_id = async (id) => {
+    const client = await connectDb();
+    try {
+        const { rows } = await client.query(`
+            SELECT * 
+            FROM mst_user mu 
+            LEFT JOIN mst_group_user mgu ON mu.mu_id = mgu.mst_user_mu_id
+            LEFT JOIN mst_group mg ON mgu.mst_group_mg_id = mg.mg_id
+            LEFT JOIN mst_pegawai mpg ON mu.mst_peg_mpg_id = mpg.mpg_id
+            WHERE mu_id = $1`, [id]);
+        return rows;
+    }catch (error) {
+        console.error('Error : ', error);
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 export { 
     get_mst_user_all,
-    count_mst_user
+    count_mst_user,
+    get_mst_user_by_id
 };
