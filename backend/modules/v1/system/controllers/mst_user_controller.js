@@ -110,7 +110,7 @@ const count_mst_user = asyncHandler(async (req, res, next) => {
 const get_mst_user_by_id = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const mst_user = await mst_user_model.get_mst_user_by_id(id);
-
+    console.log(mst_user)
     if (mst_user && mst_user.length > 0) {
         let mst_userData = [];
         // Proses data user
@@ -146,7 +146,7 @@ const get_mst_user_by_id = asyncHandler(async (req, res) => {
         res.status(200).json({
             statusCode: 200,
             message: {
-                label_message: 'Master group with Privileges',
+                label_message: 'Detail Master User',
                 validasi_data: null
             },
             data: { 
@@ -165,5 +165,6 @@ const get_mst_user_by_id = asyncHandler(async (req, res) => {
 
 export {
     get_mst_user_all,
-    count_mst_user
+    count_mst_user,
+    get_mst_user_by_id
 };
