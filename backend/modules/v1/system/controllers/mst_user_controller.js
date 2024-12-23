@@ -3,6 +3,44 @@ import * as mst_user_model from '../models/mst_user_model.js';
 // import { body, validationResult } from 'express-validator';
 import { responseCode } from '../../../../helper/applicationHelper.js';
 
+const validate_mst_user = (isUpdate = false) => {
+    const validations_mst_user = [
+            body('username')
+                .notEmpty().withMessage('Username tidak boleh kosong')
+                .custom((value) => {
+                    if (/^\d+$/.test(value)) {
+                        throw new Error('Username tidak boleh hanya angka');
+                    }
+                    return true;
+                }),
+        ];
+    
+        if (!isUpdate) {
+            validations_mst_user.push(
+                body('password')
+                    .notEmpty().withMessage('Password tidak boleh kosong')
+                    .custom((value) => {
+                        if (/^\d+$/.test(value)) {
+                            throw new Error('Password tidak boleh hanya angka');
+                        }
+                        return true;
+                    })
+            );
+        } else {
+            validations_mst_user.push(
+                body('password')
+                    .optional()
+                    .custom((value) => {
+                        if (value && /^\d+$/.test(value)) {
+                            throw new Error('Password tidak boleh hanya angka');
+                        }
+                        return true;
+                    })
+            );
+        }
+
+    return validations_mst_user;
+};
 
 // @desc Get All user
 // @route GET /api/version/mst_user
@@ -158,6 +196,48 @@ const get_mst_user_by_id = asyncHandler(async (req, res) => {
         throw responseCode(
             404,
             'Data tidak ditemukan',
+        );
+    }
+});
+
+// @desc Create New Master User With Group
+// @route POST /api/version/system/mst_group
+// @access Public
+const create_mst_user = asyncHandler(async (req, res) => {
+    const validate_mst_group = validationResult(req);
+    if (!validate_mst_group.isEmpty()) {
+        throw responseCode(
+            400,
+            'Periksa format inputan',
+            validate_mst_group.array()
+        );
+    }
+    
+    const post = req.body;
+    // Check if name group already exists
+    const existingGroup = await mst_group_model.check_group_name(null, post.mst_group);
+    if (existingGroup) {
+        throw responseCode(
+            400,
+            `Nama Group ${existingGroup.mg_nama_group} sudah digunakan`,
+        );
+    }
+    
+    const create_group_privileges = await mst_group_model.create_group_privileges({ post });
+    if (create_group_privileges) {
+        res.status(201).json({
+            statusCode : 201,
+            message : {
+                label_message : 'Data berhasil di simpan',
+                validasi_data : null
+            },
+            data : create_group_privileges,
+            stack : null
+        });
+    } else {
+        throw responseCode(
+            500,
+            'Gagal menyimpan data',
         );
     }
 });
