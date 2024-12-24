@@ -204,6 +204,7 @@ const get_mst_user_by_id = asyncHandler(async (req, res) => {
 // @route POST /api/version/system/mst_group
 // @access Public
 const create_mst_user = asyncHandler(async (req, res) => {
+    // Validasi input menggunakan express-validator
     const validate_mst_user = validationResult(req);
     if (!validate_mst_user.isEmpty()) {
         throw responseCode(
@@ -212,35 +213,69 @@ const create_mst_user = asyncHandler(async (req, res) => {
             validate_mst_user.array()
         );
     }
-    
+
     const post = req.body;
-    // Check if name group already exists
+    
+    // Validasi password
+    const check_pass = check_pass_konfirmasi({
+        pass: post.mst_user.password, 
+        pass_konf: post.mst_user.password_konfirmasi
+    });
+
+    // Jika check_pass.data adalah false, maka lemparkan response error.
+    if (check_pass.data === false) {
+        throw responseCode(403, 'Inputan tidak sama');
+    }
+
+    // Cek apakah username sudah digunakan
     const check_username = await mst_group_model.check_check_username(null, post.mst_user);
     if (check_username) {
         throw responseCode(
             400,
-            `Username ${check_username.mu_username} sudah digunakan`,
+            `Username ${check_username.mu_username} sudah digunakan`
         );
     }
-    
+
+    // Buat user baru
     const create_user_group = await mst_group_model.create_user_group({ post });
     if (create_user_group) {
         res.status(201).json({
-            statusCode : 201,
-            message : {
-                label_message : 'Data berhasil di simpan',
-                validasi_data : null
+            statusCode: 201,
+            message: {
+                label_message: 'Data berhasil di simpan',
+                validasi_data: null
             },
-            data : create_user_group,
-            stack : null
+            data: create_user_group,
+            stack: null
         });
     } else {
-        throw responseCode(
-            500,
-            'Gagal menyimpan data',
-        );
+        throw responseCode(500, 'Gagal menyimpan data');
     }
 });
+
+// check password dan konfirmasi password
+const check_pass_konfirmasi = ({ pass, pass_konf }) => {
+    // Pastikan pass dan pass_konf ada
+    if (!pass || !pass_konf) {
+        throw responseCode(403, 'Inputan nya tidak boleh kosong');
+    }
+    
+    // Cek jika pass dan pass_konf tidak sama
+    if (pass !== pass_konf) {
+        throw responseCode(403, 'Inputan tidak sama');
+    }
+    
+    res.status(200).json({
+        statusCode: 200,
+        message: {
+            label_message: 'Inputan anda valid',
+            validasi_data: null
+        },
+        data: true,
+        stack: null
+    });
+};
+
 
 
 export {
