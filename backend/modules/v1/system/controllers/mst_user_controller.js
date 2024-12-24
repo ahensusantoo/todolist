@@ -204,34 +204,34 @@ const get_mst_user_by_id = asyncHandler(async (req, res) => {
 // @route POST /api/version/system/mst_group
 // @access Public
 const create_mst_user = asyncHandler(async (req, res) => {
-    const validate_mst_group = validationResult(req);
-    if (!validate_mst_group.isEmpty()) {
+    const validate_mst_user = validationResult(req);
+    if (!validate_mst_user.isEmpty()) {
         throw responseCode(
             400,
             'Periksa format inputan',
-            validate_mst_group.array()
+            validate_mst_user.array()
         );
     }
     
     const post = req.body;
     // Check if name group already exists
-    const existingGroup = await mst_group_model.check_group_name(null, post.mst_group);
-    if (existingGroup) {
+    const check_username = await mst_group_model.check_check_username(null, post.mst_user);
+    if (check_username) {
         throw responseCode(
             400,
-            `Nama Group ${existingGroup.mg_nama_group} sudah digunakan`,
+            `Username ${check_username.mu_username} sudah digunakan`,
         );
     }
     
-    const create_group_privileges = await mst_group_model.create_group_privileges({ post });
-    if (create_group_privileges) {
+    const create_user_group = await mst_group_model.create_user_group({ post });
+    if (create_user_group) {
         res.status(201).json({
             statusCode : 201,
             message : {
                 label_message : 'Data berhasil di simpan',
                 validasi_data : null
             },
-            data : create_group_privileges,
+            data : create_user_group,
             stack : null
         });
     } else {
@@ -246,5 +246,7 @@ const create_mst_user = asyncHandler(async (req, res) => {
 export {
     get_mst_user_all,
     count_mst_user,
-    get_mst_user_by_id
+    get_mst_user_by_id,
+    validate_mst_user,
+    create_mst_user
 };

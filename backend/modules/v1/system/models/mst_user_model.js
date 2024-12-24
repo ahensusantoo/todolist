@@ -106,10 +106,33 @@ const get_mst_user_by_id = async (id) => {
     }
 };
 
+const check_check_username = async (id= null, post = null) => {
+    const client = await pool.connect();
+    try {
+        const { nama_group } = post;
+        let queryText = 'SELECT * FROM mst_user WHERE LOWER(mu_username) = LOWER($1)';
+        let queryParams = [nama_group];
+
+        //check jika proses update cari yang selain id dia sendiri
+        if (id && id !== '') {
+            queryText += ' AND mu_id != $2';
+            queryParams.push(id);
+        }
+        const { rows } = await client.query(queryText, queryParams);
+        return rows[0];
+    } catch (error) {
+        console.error('Error : ', error);
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 
 
 export { 
     get_mst_user_all,
     count_mst_user,
-    get_mst_user_by_id
+    get_mst_user_by_id,
+    check_check_username
 };
