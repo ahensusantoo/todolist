@@ -188,6 +188,14 @@ const create_mst_group = asyncHandler(async (req, res) => {
 // @access Public
 const update_mst_group = asyncHandler(async (req, res) => {
     const { id } = req.params;
+    const check_mst_group = await mst_group_model.get_mst_group_by_id(id);
+    if (!id || !check_mst_group) {
+        throw responseCode(
+            400,
+            'Group tidak ditemukan',
+        );
+    }
+    
     const validate_mst_group = validationResult(req);
     if (!validate_mst_group.isEmpty()) {
         throw responseCode(
@@ -225,17 +233,39 @@ const update_mst_group = asyncHandler(async (req, res) => {
     }
 });
 
+const check_group_name = async (id, post = null) => {
+    const client = await connectDb();
+    try {
+        const { nama_group } = post;
+        let queryText = 'SELECT * FROM mst_group WHERE LOWER(mg_nama_group) = LOWER($1)';
+        let queryParams = [nama_group];
+
+        //check jika proses update cari yang selain id dia sendiri
+        if (id && id !== '') {
+            queryText += ' AND mg_id != $2';
+            queryParams.push(id);
+        }
+
+        // Execute the query
+        const { rows } = await client.query(queryText, queryParams);
+        return rows[0];
+    } catch (error) {
+        throw responseCode(500, error);
+    } finally {
+        client.release();
+    }
+};
+
 // @desc Delete mst Group by ID
 // @route DELETE /api/version/system/mst_group/:id
 // @access Public
 const delete_mst_group = asyncHandler(async (req, res) => {
     const { id } = req.params;
-
-    // Validate the id
-    if (!id) {
+    const check_mst_group = await mst_group_model.get_mst_group_by_id(id);
+    if (!id || !check_mst_group) {
         throw responseCode(
             400,
-            'ID group tidak ditemukan',
+            'Group tidak ditemukan',
         );
     }
 

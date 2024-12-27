@@ -148,7 +148,6 @@ const count_mst_user = asyncHandler(async (req, res, next) => {
 const get_mst_user_by_id = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const mst_user = await mst_user_model.get_mst_user_by_id(id);
-    console.log(mst_user)
     if (mst_user && mst_user.length > 0) {
         let mst_userData = [];
         // Proses data user
@@ -253,6 +252,68 @@ const create_mst_user = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc Update Mst Group User
+// @route PUT /api/version/system/mst_group_user/:id
+// @access Public
+const update_mst_user = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const check_mst_user = await mst_user_model.get_mst_user_by_id(id);
+    if (!id || !check_mst_user) {
+        throw responseCode(
+            400,
+            'User tidak ditemukan',
+        );
+    }
+    const validate_mst_user = validationResult(req);
+    if (!validate_mst_user.isEmpty()) {
+        throw responseCode(
+            400,
+            'Periksa format inputan',
+            validate_mst_user.array()
+        );
+    }
+
+    const post = req.body;
+    
+    // Validasi password
+    const check_pass = check_pass_konfirmasi({
+        pass: post.mst_user.password, 
+        pass_konf: post.mst_user.password_konfirmasi
+    });
+
+    // Jika check_pass.data adalah false, maka lemparkan response error.
+    if (check_pass.data === false) {
+        throw responseCode(403, 'Inputan tidak sama');
+    }
+
+    // Cek apakah username sudah digunakan
+    const check_username = await mst_group_model.check_check_username(null, post.mst_user);
+    if (check_username) {
+        throw responseCode(
+            400,
+            `Username ${check_username.mu_username} sudah digunakan`
+        );
+    }
+
+    const update_user_group = await mst_group_model.update_user_group({ id, post });
+    if (update_user_group) {
+        res.status(201).json({
+            statusCode : 200,
+            message : {
+                label_message : 'Data berhasil di simpan/update',
+                validasi_data : null
+            },
+            data : update_user_group,
+            stack : null
+        });
+    } else {
+        throw responseCode(
+            500,
+            'Gagal menyimpan data',
+        );
+    }
+});
+
 // check password dan konfirmasi password
 const check_pass_konfirmasi = ({ pass, pass_konf }) => {
     // Pastikan pass dan pass_konf ada
@@ -283,5 +344,6 @@ export {
     count_mst_user,
     get_mst_user_by_id,
     validate_mst_user,
-    create_mst_user
+    create_mst_user,
+    update_mst_user
 };

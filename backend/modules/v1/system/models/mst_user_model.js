@@ -134,47 +134,34 @@ const create_user_group = async ({ post }) => {
     const client = await connectDb();
     try {
         await client.query('BEGIN'); // Mulai transaksi
-        const { username, kode_pegawai, password, stts_aktif, user_ip } = post.mst_user;
+        const { username, kode_pegawai, password, stts_aktif, user_ip, user_insert} = post.mst_user;
         const isActive = (stts_aktif === true || stts_aktif === 'true') ? 1 : 0;
         const kodePegawai = (kode_pegawai != "") ? kode_pegawai : null;
         const userIp = (user_ip != "") ? user_ip : null;
         const hashedPassword = await bcrypt.hash(password, 10);
         
         const mu_id = await makeID('MU', 'sc_mst_user'); // Menghasilkan ID untuk grup
-        const userInsertQuery = `
-            INSERT INTO ${table} (mu_id, mst_peg_mpg_id, mu_username, mu_password, mu_is_aktif, mu_ip_login, mu_tgl_last_activity, mu_delete, mu_tgl_last_login) 
-            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, $7, CURRENT_TIMESTAMP)
+        const insert_user_query = `
+            INSERT INTO ${table} (mu_id, mst_peg_mpg_id, mu_username, mu_password, mu_is_aktif, mu_tgl_last_activity, mu_tgl_last_login) 
+            VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING mu_id, mu_username, mu_is_aktif`;
-        const userValues = [mu_id, kodePegawai, username, hashedPassword, isActive, userIp, null];
-        // Mengambil hasil dari query INSERT
-        const result_mst_group = await client.query(userInsertQuery, userValues);
+        const insert_user_value = [mu_id, kodePegawai, username, hashedPassword, isActive];
+        const result_mst_group_user = await client.query(insert_user_query, insert_user_value);
 
         // Eksekusi setiap privilege
         for (const group of post.mst_group) {
             const id_user_group = await makeID('MGU', 'sc_mst_group_user');
-            
-            // Memeriksa apakah hak akses sudah ada
-            const existingTransAction = await check_user_group(id_group, privilege);
-            
-            if (existingTransAction) {
-                await client.query('ROLLBACK');
-                throw responseCode(
-                    400,
-                    `Untuk grup ${existingTransAction.mg_nama_group} ini sudah memiliki hak akses ${existingTransAction.mp_action}`,
-                );
-            }
-
             // Query untuk memasukkan hak akses
-            const privilegeInsertQuery = `
-                INSERT INTO trans_action (tac_id, mst_group_mg_id, mst_privileges_mp_id) 
-                VALUES ($1, $2, $3)`;
+            const group_user_query = `
+                INSERT INTO mst_group_user (mgu_id, mst_group_mg_id, mst_user_mu_id, mgu_user_update, mgu_tgl_update) 
+                VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`;
 
-            const privilegeValues = [id_trans_action, id_group, privilege];
-            await client.query(privilegeInsertQuery, privilegeValues);
+            const group_user_value = [id_user_group, group, mu_id, user_insert];
+            await client.query(group_user_query, group_user_value);
         }
 
         await client.query('COMMIT'); // Commit setelah semua berhasil
-        return result_mst_group.rows[0]; // Mengembalikan data grup yang dimasukkan
+        return result_mst_group_user.rows[0]; // Mengembalikan data grup yang dimasukkan
     } catch (error) {
         await client.query('ROLLBACK');
         throw responseCode(
@@ -187,11 +174,81 @@ const create_user_group = async ({ post }) => {
 };
 
 
+const update_user_group = async ({id, post }) => {
+    const client = await connectDb();
+    try {
+        await client.query('BEGIN'); // Mulai transaksi
+        const { username, kode_pegawai, password, stts_aktif, user_ip, user_insert} = post.mst_user;
+        const isActive = (stts_aktif === true || stts_aktif === 'true') ? 1 : 0;
+        const kodePegawai = (kode_pegawai != "") ? kode_pegawai : null;
+        const userIp = (user_ip != "") ? user_ip : null;
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Query untuk mengupdate grup
+        const update_user_query = `
+            UPDATE ${table} 
+            SET mu_id = $1, mst_peg_mpg_id = $2, mu_username = $3, mu_is_aktif = $4, mg_tgl_update = CURRENT_TIMESTAMP, mst_aplikasi_ma_id = $5 
+            WHERE mg_id = $6
+            RETURNING mg_id, mg_nama_group, mg_ket_group, mg_is_aktif, mg_user_update, mg_tgl_update, mst_aplikasi_ma_id`;
+
+        const groupValues = [nama_group, deskripsi_group, isActive, user_update, aplikasi_default, id];
+        
+        // Mengambil hasil dari query UPDATE
+        const result_mst_group = await client.query(update_user_query, groupValues);
+        if (result_mst_group.rows.length === 0) {
+            throw responseCode(
+                403,
+                `Grup tidak ditemukan.`,
+            );
+        }
+        // Menghapus hak akses yang ada
+        const deletePrivilegesQuery = `DELETE FROM trans_action WHERE mst_group_mg_id = $1`;
+        await client.query(deletePrivilegesQuery, [id]);
+
+        // Eksekusi setiap privilege yang baru
+        for (const privilege of post.privileges) {
+            const id_trans_action = await makeID('TAC', 'sc_trans_action');
+            
+            // Memeriksa apakah hak akses sudah ada
+            const existingTransAction = await check_trans_action(id, privilege);
+            
+            if (existingTransAction) {
+                await client.query('ROLLBACK');
+                throw responseCode(
+                    400,
+                    `Untuk grup ${existingTransAction.mg_nama_group} ini sudah memiliki hak akses ${existingTransAction.mp_action}`,
+                );
+            }
+
+            // Query untuk memasukkan hak akses baru
+            const privilegeInsertQuery = `
+                INSERT INTO trans_action (tac_id, mst_group_mg_id, mst_privileges_mp_id) 
+                VALUES ($1, $2, $3)`;
+
+            const privilegeValues = [id_trans_action, id, privilege];
+            await client.query(privilegeInsertQuery, privilegeValues);
+        }
+
+        await client.query('COMMIT');
+        return result_mst_group.rows[0];
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Terjadi kesalahan:', error); // Debugging log
+        throw responseCode(
+            500,
+            error
+        );
+    } finally {
+        client.release(); // Mengembalikan koneksi
+    }
+};
+
 
 export { 
     get_mst_user_all,
     count_mst_user,
     get_mst_user_by_id,
     check_check_username,
-    create_user_group
+    create_user_group,
+    update_user_group
 };
