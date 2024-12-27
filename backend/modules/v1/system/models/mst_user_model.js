@@ -151,10 +151,10 @@ const create_user_group = async ({ post }) => {
 
         // Eksekusi setiap privilege
         for (const group of post.mst_group) {
-            const id_trans_action = await makeID('TAC', 'sc_trans_action');
+            const id_user_group = await makeID('MGU', 'sc_mst_group_user');
             
             // Memeriksa apakah hak akses sudah ada
-            const existingTransAction = await check_trans_action(id_group, privilege);
+            const existingTransAction = await check_user_group(id_group, privilege);
             
             if (existingTransAction) {
                 await client.query('ROLLBACK');
