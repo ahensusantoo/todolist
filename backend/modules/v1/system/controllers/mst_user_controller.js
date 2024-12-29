@@ -1,4 +1,5 @@
 import asyncHandler from 'express-async-handler';
+import { body, validationResult } from 'express-validator';
 import * as mst_user_model from '../models/mst_user_model.js';
 // import { body, validationResult } from 'express-validator';
 import { responseCode } from '../../../../helper/applicationHelper.js';
@@ -314,6 +315,39 @@ const update_mst_user = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc Delete mst user by ID
+// @route DELETE /api/version/system/mst_user/:id
+// @access Public
+const delete_user = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const check_mst_user = await mst_user_model.get_mst_user_by_id(id);
+    if (!id || !check_mst_user) {
+        throw responseCode(
+            400,
+            'User tidak ditemukan',
+        );
+    }
+
+    // Delete the group from the database
+    const delete_user = await mst_user_model.delete_user(id);
+    if (delete_user) {
+        res.status(200).json({
+            statusCode: 200,
+            message: {
+                label_message: 'Data berhasil dihapus',
+                validasi_data: null
+            },
+            data: delete_user,
+            stack: null
+        });
+    } else {
+        throw responseCode(
+            500,
+            'Gagal menghapus data',
+        );
+    }
+});
+
 // check password dan konfirmasi password
 const check_pass_konfirmasi = ({ pass, pass_konf }) => {
     // Pastikan pass dan pass_konf ada
@@ -345,5 +379,6 @@ export {
     get_mst_user_by_id,
     validate_mst_user,
     create_mst_user,
-    update_mst_user
+    update_mst_user,
+    delete_user
 };
